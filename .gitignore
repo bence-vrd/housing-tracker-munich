@@ -1,0 +1,12 @@
+# virtual environment
+venv/
+
+# python cache files
+__pycache__/
+*.pyc
+
+
+# private infos
+.env
+
+
