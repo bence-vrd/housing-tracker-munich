@@ -1,3 +1,4 @@
+import os
 from bs4 import BeautifulSoup
 from base_scraper import BaseScraper
 
@@ -5,10 +6,16 @@ from base_scraper import BaseScraper
 class KleinanzeigenScraper(BaseScraper):
 
     def __init__(self, conn, cur):
-        url = "https://www.kleinanzeigen.de/s-auf-zeit-wg/muenchen/sortierung:neuste/anzeige:angebote/preis::1100/c199l6411r10"
+        url = os.getenv("KLEINANZEIGEN_URL")
+        if not url:
+            print("[Kleinanzeigen] WARNING: No URL found in .env")
+            url = ""
         super().__init__(conn, cur, url, "Kleinanzeigen")
 
     def run(self):
+        if not self.url:
+            return
+
         html = self.fetch_html()
         if not html:
             return
@@ -32,7 +39,10 @@ class KleinanzeigenScraper(BaseScraper):
             link = f"https://www.kleinanzeigen.de{title_tag['href']}" if title_tag.has_attr("href") else ""
 
             price_tag = item.find("p", class_="aditem-main--middle--price-shipping--price")
-            price = price_tag.text.strip().replace("\n", " ") if price_tag else "no price found"
+            if price_tag:
+                price = " ".join(price_tag.text.split())
+            else:
+                price = "N\A"
 
             time_tag = item.find("div", class_="aditem-main--top--right")
             if not time_tag or not time_tag.text.strip():

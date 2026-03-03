@@ -82,13 +82,13 @@ def job():
     db_conn, db_cur = setup_database()
 
     if db_conn:
-        kleinanzeigen_scraper = KleinanzeigenScraper(db_conn, db_cur)
-        kleinanzeigen_scraper.run()
+        wggesucht_scraper = WgGesuchtScraper(db_conn, db_cur)
+        wggesucht_scraper.run()
 
         time.sleep(random.uniform(5, 10))
 
-        wggesucht_scraper = WgGesuchtScraper(db_conn, db_cur)
-        wggesucht_scraper.run()
+        kleinanzeigen_scraper = KleinanzeigenScraper(db_conn, db_cur)
+        kleinanzeigen_scraper.run()
 
         print("Fetching done")
 
@@ -106,6 +106,7 @@ if __name__ == "__main__":
 
     # Wait 15 seconds for db booting up
     time.sleep(15)
+
     job()
     schedule.every(10).minutes.do(job)
 

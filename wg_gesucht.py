@@ -1,5 +1,6 @@
 import re
 import time
+import os
 from bs4 import BeautifulSoup
 from base_scraper import BaseScraper
 
@@ -7,10 +8,17 @@ from base_scraper import BaseScraper
 class WgGesuchtScraper(BaseScraper):
 
     def __init__(self, conn, cur):
-        url = "https://www.wg-gesucht.de/wg-zimmer-und-1-zimmer-wohnungen-und-wohnungen-und-haeuser-in-Muenchen.90.0+1+2+3.1.0.html?offer_filter=1&city_id=90&sort_order=0&noDeact=1&categories%5B%5D=0&categories%5B%5D=1&categories%5B%5D=2&categories%5B%5D=3&rMax=900"
+        url = os.getenv("WG_GESUCHT_URL")
+        if not url:
+            print("[WG-Gesucht] WARNING: no URL found in .env")
+            url = ""
+
         super().__init__(conn, cur, url, "WG-Gesucht")
 
     def run(self):
+        if not self.url:
+            return
+
         html = self.fetch_html()
         if not html:
             return
