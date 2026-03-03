@@ -4,8 +4,8 @@ import random
 from flask import Flask, render_template_string
 from threading import Thread
 from database import setup_database
-from kleinanzeigen import fetch_kleinanzeigen
-from wg_gesucht import fetch_wg_gesucht
+from kleinanzeigen import KleinanzeigenScraper
+from wg_gesucht import WgGesuchtScraper
 
 
 app = Flask(__name__)
@@ -82,10 +82,13 @@ def job():
     db_conn, db_cur = setup_database()
 
     if db_conn:
-        fetch_kleinanzeigen(db_conn, db_cur)
+        kleinanzeigen_scraper = KleinanzeigenScraper(db_conn, db_cur)
+        kleinanzeigen_scraper.run()
 
         time.sleep(random.uniform(5, 10))
-        fetch_wg_gesucht(db_conn, db_cur)
+
+        wggesucht_scraper = WgGesuchtScraper(db_conn, db_cur)
+        wggesucht_scraper.run()
 
         print("Fetching done")
 

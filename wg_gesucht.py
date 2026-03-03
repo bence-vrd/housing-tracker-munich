@@ -1,30 +1,21 @@
 import re
 import time
-import requests
 from bs4 import BeautifulSoup
-from notifications import send_telegram_msg
+from base_scraper import BaseScraper
 
 
-def fetch_wg_gesucht(conn, cur):
-    url = "https://www.wg-gesucht.de/wg-zimmer-und-1-zimmer-wohnungen-und-wohnungen-und-haeuser-in-Muenchen.90.0+1+2+3.1.0.html?offer_filter=1&city_id=90&sort_order=0&noDeact=1&categories%5B%5D=0&categories%5B%5D=1&categories%5B%5D=2&categories%5B%5D=3&rMax=900"
+class WgGesuchtScraper(BaseScraper):
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "Accept-Language": "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-        "Connection": "keep-alive"
-    }
+    def __init__(self, conn, cur):
+        url = "https://www.wg-gesucht.de/wg-zimmer-und-1-zimmer-wohnungen-und-wohnungen-und-haeuser-in-Muenchen.90.0+1+2+3.1.0.html?offer_filter=1&city_id=90&sort_order=0&noDeact=1&categories%5B%5D=0&categories%5B%5D=1&categories%5B%5D=2&categories%5B%5D=3&rMax=900"
+        super().__init__(conn, cur, url, "WG-Gesucht")
 
-    print(f"[WG-Gesucht] Send request to {url[:30]}...")
+    def run(self):
+        html = self.fetch_html()
+        if not html:
+            return
 
-    try:
-        response = requests.get(url=url, headers=headers, timeout=15)
-    except Exception as e:
-        print(f"[WG-Gesucht] Error getting request: {e}")
-        return
-
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.text, 'lxml')
+        soup = BeautifulSoup(html, 'lxml')
         premium_ad = soup.find("div", class_="premium_user_extra_list")
         if premium_ad:
             premium_ad.decompose()
@@ -65,33 +56,13 @@ def fetch_wg_gesucht(conn, cur):
             if div_time_tag:
                 span_tag = div_time_tag.find(text=re.compile("Online:", re.IGNORECASE))
                 if span_tag:
-                    post_time = span_tag.text.replace("Online:", "").replace("Minuten", "Minutes").replace("Stunden", "Hours").strip() + " ago"
+                    post_time = span_tag.text.replace("Online:", "").replace("Minuten", "Minutes").replace("Stunden",
+                                                                                                           "Hours").strip() + " ago"
 
-            if conn and cur:
-                try:
-                    cur.execute("""
-                        INSERT INTO listings (title, price, post_time, link)
-                        VALUES (%s, %s, %s, %s)
-                        ON CONFLICT (link) DO NOTHING
-                    """, (title, price, post_time, link))
+            if self.save_to_db_and_notify(title, price, post_time, link):
+                new_items += 1
 
-                    if cur.rowcount == 1:
-                        new_items += 1
-                        print(f"[WG-Gesucht] NEW AD SAVED: {title} | {price}")
+        if self.conn:
+            self.conn.commit()
 
-                        msg = f"🚨 <b>WG-Gesucht: New apartment found!</b>\n\n<b>Title:</b> {title}\n<b>Price:</b> {price}\n<b>Time:</b> {post_time}\n\n<a href='{link}'>Click here to visit add!</a>"
-                        send_telegram_msg(msg)
-                except Exception as e:
-                    print(f"[WG-Gesucht] DB Error: {e}")
-                    conn.rollback()
-
-        if conn:
-            conn.commit()
-        print(f"[WG-Gesucht] {new_items} new ads were added to db\n")
-
-    else:
-        print(f"[WG-Gesucht] Error: Status code: {response.status_code}")
-
-
-
-
+        print(f"[{self.name}] {new_items} new ads were added to db\n")
