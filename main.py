@@ -30,12 +30,22 @@ HTML_TEMPLATE = """
         <tr>
             <th>Title</th>
             <th>Price</th>
-            <th>Posted</th>
+            <th>Posted (on Website)</th>
             <th>Link</th>
+            <th>Website</th>
         </tr>
         {% for listing in listings %}
         <tr>
-            <td>{{ listing[1] }}</td> <td>{{ listing[2] }}</td> <td>{{ listing[3] }}</td> <td><a href="{{ listing[4] }}" target="_blank">Link</a></td> </tr>
+            <td>{{ listing[1] }}</td> <td>{{ listing[2] }}</td> <td>{{ listing[3] }}</td> <td><a href="{{ listing[4] }}" target="_blank">Link</a></td> <td>
+                {% if 'wg-gesucht.de' in listing[4] %}
+                    WG-Gesucht
+                {% elif 'kleinanzeigen.de' in listing[4] %}
+                    Kleinanzeigen
+                {% else %}
+                    Unbekannt
+                {% endif %}
+            </td>
+        </tr>
         {% endfor %}
     </table>
 </body>
@@ -46,8 +56,9 @@ HTML_TEMPLATE = """
 def home():
     conn, cur = setup_database()
     if conn and cur:
-        cur.execute("SELECT * FROM listings ORDER BY id DESC LIMIT 10")
+        cur.execute("SELECT * FROM listings ORDER BY created_at DESC LIMIT 10")
         recent_listings = cur.fetchall()
+
         cur.close()
         conn.close()
     else:
@@ -90,6 +101,8 @@ if __name__ == "__main__":
 
     keep_alive()
 
+    # Wait 15 seconds for db booting up
+    time.sleep(15)
     job()
     schedule.every(10).minutes.do(job)
 

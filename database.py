@@ -24,7 +24,8 @@ def setup_database():
             title VARCHAR(255),
             price VARCHAR(63),
             post_time VARCHAR(63),
-            link TEXT UNIQUE
+            link TEXT UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         conn.commit()
