@@ -2,7 +2,9 @@ import requests
 from bs4 import BeautifulSoup
 import psycopg2
 import os
+import time
 from dotenv import load_dotenv
+import schedule
 
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -61,7 +63,7 @@ def send_telegram_msg(text):
 
 # fetch data from given url
 def fetch_house_data(conn, cur):
-    url = "https://www.kleinanzeigen.de/s-auf-zeit-wg/muenchen/sortierung:neuste/anzeige:angebote/preis::1300/c199l6411r10"
+    url = "https://www.kleinanzeigen.de/s-auf-zeit-wg/muenchen/sortierung:neuste/anzeige:angebote/preis::1100/c199l6411r10"
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
@@ -123,11 +125,25 @@ def fetch_house_data(conn, cur):
         print("Failed to get on website")
 
 
-if __name__ == "__main__":
+
+def job():
+    print(f"\n---[{time.strftime('%d.%m.%Y %H:%M:%S')}] Start automatically searching ---")
     db_conn, db_cur = setup_database()
 
     if db_conn:
         fetch_house_data(db_conn, db_cur)
-
         db_cur.close()
         db_conn.close()
+    else:
+        print("Error: couldnt connect to db")
+
+if __name__ == "__main__":
+    print("Housing bot started!")
+    print("The bot now searches every 15 minute for new housings! (Press Ctrl+C to stop)")
+
+    job()
+    schedule.every(15).minutes.do(job)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(5)
