@@ -1,6 +1,7 @@
 import re
 import time
 import os
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from base_scraper import BaseScraper
 
@@ -59,13 +60,32 @@ class WgGesuchtScraper(BaseScraper):
             if not link or not title:
                 continue
 
-            post_time = time.strftime("%d.%m. %H:%M")
+            now = datetime.now()
+            post_time = now.strftime('%H:%M')
+
             div_time_tag = item.find("div", class_="col-xs-9")
             if div_time_tag:
-                span_tag = div_time_tag.find(text=re.compile("Online:", re.IGNORECASE))
+                span_tag = div_time_tag.find(string=re.compile("Online:", re.IGNORECASE))
                 if span_tag:
-                    post_time = span_tag.text.replace("Online:", "").replace("Minuten", "Minutes").replace("Stunden",
-                                                                                                           "Hours").strip() + " ago"
+                    raw_text = span_tag.text.replace("Online:", "").strip()
+
+                    try:
+                        val = int(re.search(r'\d+', raw_text).group())
+
+                        if "Minute" in raw_text:
+                            calc_time = now - timedelta(minutes=val)
+                        elif "Stunde" in raw_text:
+                            calc_time = now - timedelta(hours=val)
+                        elif "Sekunde" in raw_text:
+                            calc_time = now - timedelta(seconds=val)
+                        elif "Tag" in raw_text:
+                            calc_time = now - timedelta(days=val)
+                        else:
+                            calc_time = now
+
+                        post_time = calc_time.strftime("%H:%M")
+                    except Exception as e:
+                        self.logger.error(f"Time parsing error for {raw_text}")
 
             if self.save_to_db_and_notify(title, price, post_time, link):
                 new_items += 1

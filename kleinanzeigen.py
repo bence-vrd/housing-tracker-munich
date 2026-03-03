@@ -1,4 +1,5 @@
 import os
+import re
 from bs4 import BeautifulSoup
 from base_scraper import BaseScraper
 
@@ -49,7 +50,13 @@ class KleinanzeigenScraper(BaseScraper):
             if not time_tag or not time_tag.text.strip():
                 continue
 
-            post_time = time_tag.text.strip().replace("Heute,", "").replace("Gestern, ", "")
+            raw_time = time_tag.text.strip()
+
+            match = re.search(r'\d{2}:\d{2}', raw_time)
+            if match:
+                post_time = match.group()
+            else:
+                post_time = raw_time.replace("Heute,", "").replace("Gestern,", "").strip()
 
             if self.save_to_db_and_notify(title, price, post_time, link):
                 new_items += 1
