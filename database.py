@@ -13,7 +13,7 @@ def setup_database():
         print("Error: DATABASE_URL not in .env")
         return None, None
 
-    print("Connect with databse...")
+    print("Connect with database...")
     try:
         conn = psycopg2.connect(db_url)
         cur = conn.cursor()
@@ -31,7 +31,7 @@ def setup_database():
 
         cur.execute("""
             ALTER TABLE listings
-            ADD COLUMN IF NOT EXISTS created_at TIMESTAMPT DEFAULT CURRENT_TIMESTAMP;
+            ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
         """)
 
         conn.commit()
