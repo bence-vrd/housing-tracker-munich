@@ -21,7 +21,7 @@ def fetch_kleinanzeigen(conn, cur):
     print(f"[Kleinanzeigen] Status code: {response.status_code}")
 
     if response.status_code == 200:
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, 'lxml')
         items = soup.find_all("article", class_="aditem")
 
         if len(items) == 0:

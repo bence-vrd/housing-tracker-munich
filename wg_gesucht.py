@@ -24,7 +24,7 @@ def fetch_wg_gesucht(conn, cur):
         return
 
     if response.status_code == 200:
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, 'lxml')
         premium_ad = soup.find("div", class_="premium_user_extra_list")
         if premium_ad:
             premium_ad.decompose()
