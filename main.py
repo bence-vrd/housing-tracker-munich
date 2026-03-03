@@ -23,7 +23,7 @@ def fetch_house_data():
 
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        print("Seiteninhalt:", soup.title.text.strip())
+        print("Content of website:", soup.title.text.strip())
 
         # start extracting data
         print("\nsearch for housing...")
@@ -45,11 +45,14 @@ def fetch_house_data():
             price = price_tag.text.strip().replace("\n", " ") if price_tag else "no price found"
 
             time_tag = item.find("div", class_="aditem-main--top--right")
-            post_time = time_tag.text.strip().replace("Heute,", "")
+            if not time_tag or not time_tag.text.strip():
+                continue
+            post_time = time_tag.text.strip().replace("Heute,", "").replace("Gestern, ", "")
 
             print(f"Title: {title}")
             print(f"Price: {price}")
             print(f"Time: {post_time}")
+            print(f"Link: {link}")
             print("*" * 60)
 
     else:
