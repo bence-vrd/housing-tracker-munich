@@ -28,6 +28,12 @@ def setup_database():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        cur.execute("""
+            ALTER TABLE listings
+            ADD COLUMN IF NOT EXISTS created_at TIMESTAMPT DEFAULT CURRENT_TIMESTAMP;
+        """)
+
         conn.commit()
         print("Cloud database ready\n")
         return conn, cur
