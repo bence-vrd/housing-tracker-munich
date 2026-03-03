@@ -42,7 +42,7 @@ class KleinanzeigenScraper(BaseScraper):
             if price_tag:
                 price = " ".join(price_tag.text.split())
             else:
-                price = "N\A"
+                price = "N/A"
 
             time_tag = item.find("div", class_="aditem-main--top--right")
             if not time_tag or not time_tag.text.strip():
