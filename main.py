@@ -1,13 +1,16 @@
 import requests
 from bs4 import BeautifulSoup
-import time
-import random
 import psycopg2
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 
 ## DB SETUP
-def setup_databse():
+def setup_database():
     print("Connect with databse...")
     try:
         conn = psycopg2.connect(
@@ -33,12 +36,32 @@ def setup_databse():
         return conn, cur
     except Exception as e:
         print(f"Database exception: {e}")
-        return  None, None
+        return None, None
+
+def send_telegram_msg(text):
+    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
+        print("Telegram token or chat id not in .env file")
+        return
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": text,
+        "parse_mode": "HTML"
+    }
+
+    try:
+        response = requests.post(url=url, data=payload)
+
+        if response.status_code != 200:
+            print(f"Error sending to telegram: {response.text}")
+    except Exception as e:
+        print(f"Telegram Exception: {e}")
+
 
 
 # fetch data from given url
 def fetch_house_data(conn, cur):
-    url = "https://www.kleinanzeigen.de/s-auf-zeit-wg/muenchen/sortierung:neuste/anzeige:angebote/preis::1200/c199l6411r10"
+    url = "https://www.kleinanzeigen.de/s-auf-zeit-wg/muenchen/sortierung:neuste/anzeige:angebote/preis::1300/c199l6411r10"
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
@@ -85,6 +108,9 @@ def fetch_house_data(conn, cur):
                     if cur.rowcount == 1:
                         new_items += 1
                         print(f"NEW AD SAVED: {title} | {price}")
+
+                        msg = f"🚨 <b>New apartment found!</b>\n\n<b>Title:</b> {title}\n<b>Price:</b> {price}\n<b>Time:</b> {post_time}\n\n<a href='{link}'>Click here to visit add!</a>"
+                        send_telegram_msg(msg)
                 except Exception as e:
                     print(f"Error saving to db: {e}")
                     conn.rollback()
@@ -98,11 +124,10 @@ def fetch_house_data(conn, cur):
 
 
 if __name__ == "__main__":
-    db_conn, db_cur = setup_databse()
+    db_conn, db_cur = setup_database()
 
     if db_conn:
         fetch_house_data(db_conn, db_cur)
 
         db_cur.close()
         db_conn.close()
-
