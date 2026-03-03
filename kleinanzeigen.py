@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from notifications import send_telegram_msg
 
-def fetch_kleinanzeigen_data(conn, cur):
+def fetch_kleinanzeigen(conn, cur):
     url = "https://www.kleinanzeigen.de/s-auf-zeit-wg/muenchen/sortierung:neuste/anzeige:angebote/preis::1100/c199l6411r10"
 
     headers = {

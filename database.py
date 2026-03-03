@@ -1,17 +1,21 @@
 import psycopg2
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # DB SETUP
 def setup_database():
+    db_url = os.getenv("DATABASE_URL")
+
+    if not db_url:
+        print("Error: DATABASE_URL not in .env")
+        return None, None
+
     print("Connect with databse...")
     try:
-        conn = psycopg2.connect(
-            host="localhost",
-            port="5432",
-            database="housing_tracker",
-            user="myuser",
-            password="mypassword"
-        )
+        conn = psycopg2.connect(db_url)
         cur = conn.cursor()
 
         cur.execute("""
@@ -24,8 +28,9 @@ def setup_database():
             )
         """)
         conn.commit()
-        print("Database ready\n")
+        print("Cloud database ready\n")
         return conn, cur
+
     except Exception as e:
         print(f"Database exception: {e}")
         return None, None

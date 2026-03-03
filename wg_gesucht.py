@@ -85,9 +85,9 @@ def fetch_wg_gesucht(conn, cur):
                     print(f"[WG-Gesucht] DB Error: {e}")
                     conn.rollback()
 
-            if conn:
-                conn.commit()
-            print(f"[WG-Gesucht] {new_items} new ads were added to db\n")
+        if conn:
+            conn.commit()
+        print(f"[WG-Gesucht] {new_items} new ads were added to db\n")
 
     else:
         print(f"[WG-Gesucht] Error: Status code: {response.status_code}")
