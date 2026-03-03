@@ -3,6 +3,7 @@ import schedule
 
 from database import setup_database
 from kleinanzeigen import fetch_kleinanzeigen_data
+from wg_gesucht import fetch_wg_gesucht
 
 
 def job():
@@ -12,6 +13,9 @@ def job():
 
     if db_conn:
         fetch_kleinanzeigen_data(db_conn, db_cur)
+        fetch_wg_gesucht(db_conn, db_cur)
+
+        print("Fetching done")
 
         db_cur.close()
         db_conn.close()

@@ -10,16 +10,25 @@ def fetch_kleinanzeigen_data(conn, cur):
         "Accept-Language": "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
     }
 
-    print(f"Send request to {url[:30]}...")
+    print(f"[Kleinanzeigen] Send request to {url[:30]}...")
 
-    response = requests.get(url=url, headers=headers)
-    print(f"Status code: {response.status_code}")
+    try:
+        response = requests.get(url=url, headers=headers, timeout=15)
+    except Exception as e:
+        print(f"[Kleinanzeigen] Error getting request: {e}")
+        return
+
+    print(f"[Kleinanzeigen] Status code: {response.status_code}")
 
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
         items = soup.find_all("article", class_="aditem")
 
-        print(f"DEBUG: found {len(items)} ads in HTML")
+        if len(items) == 0:
+            print("[Kleinanzeigen] WARNING: 0 Ads found => possible captcha")
+            return
+        else:
+            print(f"[Kleinanzeigen] {len(items)} Ads found in HTML")
         new_items = 0
 
         for item in items:
@@ -49,17 +58,18 @@ def fetch_kleinanzeigen_data(conn, cur):
 
                     if cur.rowcount == 1:
                         new_items += 1
-                        print(f"NEW AD SAVED: {title} | {price}")
+                        print(f"[Kleinanzeigen] NEW AD SAVED: {title} | {price}")
 
-                        msg = f"🚨 <b>New apartment found!</b>\n\n<b>Title:</b> {title}\n<b>Price:</b> {price}\n<b>Time:</b> {post_time}\n\n<a href='{link}'>Click here to visit add!</a>"
+                        msg = f"🚨 <b>Kleinanzeigen: New apartment found!</b>\n\n<b>Title:</b> {title}\n<b>Price:</b> {price}\n<b>Time:</b> {post_time}\n\n<a href='{link}'>Click here to visit add!</a>"
                         send_telegram_msg(msg)
+
                 except Exception as e:
                     print(f"Error saving to db: {e}")
                     conn.rollback()
         if conn:
             conn.commit()
-        print(f"\nFinished! {new_items} new ads were added to db")
+        print(f"[Kleinanzeigen] {new_items} new ads were added to db\n")
         print("*" * 60)
 
     else:
-        print("Failed to get on website")
+        print(f"[Kleinanzeigen] Error! Status code: {response.status_code}")
