@@ -1,11 +1,24 @@
 import time
 import schedule
 import random
-
-
+from flask import Flask
+from threading import Thread
 from database import setup_database
 from kleinanzeigen import fetch_kleinanzeigen
 from wg_gesucht import fetch_wg_gesucht
+
+
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Housing Bot is Running!"
+def run_web_server():
+    app.run(host='0.0.0.0', port=8080)
+
+def keep_alive():
+    t = Thread(target=run_web_server)
+    t.start()
 
 
 def job():
@@ -30,6 +43,8 @@ def job():
 if __name__ == "__main__":
     print("Housing bot started!")
     print("The bot now searches every 10 minute for new housings! (Press Ctrl+C to stop)")
+
+    keep_alive()
 
     job()
     schedule.every(10).minutes.do(job)
