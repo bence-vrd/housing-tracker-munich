@@ -9,11 +9,11 @@ class WgGesuchtScraper(BaseScraper):
 
     def __init__(self, conn, cur):
         url = os.getenv("WG_GESUCHT_URL")
-        if not url:
-            print("[WG-Gesucht] WARNING: no URL found in .env")
-            url = ""
 
         super().__init__(conn, cur, url, "WG-Gesucht")
+
+        if not url:
+            self.logger.warning("No URL found in .env")
 
     def run(self):
         if not self.url:
@@ -31,10 +31,10 @@ class WgGesuchtScraper(BaseScraper):
         items = soup.find_all("div", class_="wgg_card offer_list_item")
 
         if len(items) == 0:
-            print("[WG-Gesucht] WARNING: 0 Ads found => possible captcha")
+            self.logger.warning("0 Ads found => possible captcha")
             return
         else:
-            print(f"[WG-Gesucht] {len(items)} Ads found in HTML")
+            self.logger.info(f"{len(items)} Ads found in HTML")
 
         new_items = 0
 
@@ -73,4 +73,4 @@ class WgGesuchtScraper(BaseScraper):
         if self.conn:
             self.conn.commit()
 
-        print(f"[{self.name}] {new_items} new ads were added to db\n")
+        self.logger.info(f"{new_items} new ads were added to db\n" + "*" * 60)

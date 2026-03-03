@@ -1,11 +1,21 @@
 import time
 import schedule
 import random
+import logging
 from flask import Flask, render_template_string
 from threading import Thread
 from database import setup_database
 from kleinanzeigen import KleinanzeigenScraper
 from wg_gesucht import WgGesuchtScraper
+
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - [%(name)s] - %(levelname)s - %(message)s',
+    datefmt='%d.%m.%Y %H:%M:%S'
+)
+logger = logging.getLogger("Main")
 
 
 app = Flask(__name__)
@@ -68,6 +78,8 @@ def home():
 
 
 def run_web_server():
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
     app.run(host='0.0.0.0', port=8080)
 
 
@@ -77,8 +89,7 @@ def keep_alive():
 
 
 def job():
-    print(f"\n---[{time.strftime('%d.%m.%Y %H:%M:%S')}] Start automatically searching ---")
-
+    logger.info("Start automatically searching ---")
     db_conn, db_cur = setup_database()
 
     if db_conn:
@@ -90,17 +101,17 @@ def job():
         kleinanzeigen_scraper = KleinanzeigenScraper(db_conn, db_cur)
         kleinanzeigen_scraper.run()
 
-        print("Fetching done")
+        logger.info("Fetching done")
 
         db_cur.close()
         db_conn.close()
     else:
-        print("Error: couldn't connect to db")
+        logger.error("Couldn't connect to db")
 
 
 if __name__ == "__main__":
-    print("Housing bot started!")
-    print("The bot now searches every 10 minute for new housings! (Press Ctrl+C to stop)")
+    logger.info("Housing bot started!")
+    logger.info("The bot now searches every 10 minute for new housings! (Press Ctrl+C to stop)")
 
     keep_alive()
 

@@ -1,19 +1,20 @@
 import psycopg2
 import os
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
-
+logger = logging.getLogger("Database")
 
 # DB SETUP
 def setup_database():
     db_url = os.getenv("DATABASE_URL")
 
     if not db_url:
-        print("Error: DATABASE_URL not in .env")
+        logger.error("DATABASE_URL not in .env")
         return None, None
 
-    print("Connect with database...")
+    logger.info("Connect with database...")
     try:
         conn = psycopg2.connect(db_url)
         cur = conn.cursor()
@@ -35,9 +36,9 @@ def setup_database():
         """)
 
         conn.commit()
-        print("Cloud database ready\n")
+        logger.info("Cloud database ready")
         return conn, cur
 
     except Exception as e:
-        print(f"Database exception: {e}")
+        logger.error(f"Database exception: {e}")
         return None, None
