@@ -45,3 +45,8 @@ This bot is optimized to run 24/7 on the free tier of [Render.com](https://rende
 2. **Environment:** Choose `Docker` as the runtime environment (Render will automatically detect the `Dockerfile`).
 3. **Environment Variables:** Add your `TELEGRAM_TOKEN`, `TELEGRAM_CHAT_ID`, `DATABASE_URL`, `KLEINANZEIGEN_URL` and `WG-GESUCHT_URL` in the Render dashboard.
 4. **Keep-Alive Strategy:** Render's free tier spins down web services after 15 minutes of inactivity. To prevent this, the bot runs a lightweight Flask web server. You must set up an external cron-job to ping the Web Dashboard URL every 5-10 minutes.
+
+## Future Improvements
+- **Dashboard:** Implement filtering, search functionality, and pagination.
+- **Data Normalization:** Improve time parsing to store `datetime` objects, enabling easier sorting.
+- **Support for Additional Platforms:** Expand the scraping to include other popular websites.
