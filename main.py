@@ -66,7 +66,7 @@ HTML_TEMPLATE = """
 def home():
     conn, cur = setup_database()
     if conn and cur:
-        cur.execute("SELECT * FROM listings ORDER BY post_time DESC, created_at DESC LIMIT 10")
+        cur.execute("SELECT * FROM listings ORDER BY created_at DESC, post_time DESC LIMIT 10")
         recent_listings = cur.fetchall()
 
         cur.close()
